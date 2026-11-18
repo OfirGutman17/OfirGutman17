@@ -893,6 +893,9 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
     if (eq.earrings) s += '<g fill="#f5c25a" stroke="#c9922a" stroke-width="1.5" stroke-linejoin="round"><g transform="translate(221 250) rotate(-10)"><path d="M0 -13l3.800 8 8.800 1.200-6.400 6 1.600 8.800L0 4.800-7.800 10.800l1.600-8.800-6.400-6 8.800-1.200z"/></g><g transform="translate(392 278) rotate(-10)"><path d="M0 -13l3.800 8 8.800 1.200-6.400 6 1.600 8.800L0 4.800-7.800 10.800l1.600-8.800-6.400-6 8.800-1.200z"/></g></g>';
     // sunglasses (follow the head tilt)
     if (eq.glasses) s += '<g transform="translate(291 152) rotate(-17)"><path d="M-70 -6L-92 -12M70 -6L92 -12" stroke="#2f2540" stroke-width="5" stroke-linecap="round"/><rect x="-70" y="-20" width="62" height="42" rx="16" fill="#2f2540" opacity=".93"/><rect x="8" y="-20" width="62" height="42" rx="16" fill="#2f2540" opacity=".93"/><path d="M-8 -6Q0 -14 8 -6" fill="none" stroke="#2f2540" stroke-width="5" stroke-linecap="round"/><path d="M-60 -10l16-3M18 -10l16-3" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".45"/></g>';
+    // bracelets on the wrist
+    if (eq.bracelet === 'goldband') s += '<g transform="translate(350 292) rotate(-6)"><ellipse rx="30" ry="10" fill="none" stroke="#b8841f" stroke-width="9"/><ellipse rx="30" ry="10" fill="none" stroke="#f5c25a" stroke-width="6"/><path d="M-22 -3Q-8 -10 10 -8" stroke="#fff3bf" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>';
+    if (eq.bracelet === 'beads') { var bc = ['#f4a3b8', '#a9e3cd', '#ffd98a', '#c9b6f2', '#8ec9ee']; s += '<g transform="translate(350 292) rotate(-6)">'; for (var bi = 0; bi < 11; bi++) { var ba = bi / 11 * 6.283; s += '<circle cx="' + (Math.cos(ba) * 30).toFixed(1) + '" cy="' + (Math.sin(ba) * 10).toFixed(1) + '" r="6.2" fill="' + bc[bi % 5] + '" stroke="rgba(0,0,0,.15)"/>'; } s += '</g>'; }
     // hats
     if (eq.hat === 'santa') s += '<g transform="translate(290 96) rotate(-15) scale(.9)"><path d="M-92 -2C-96 -78 -48 -122 12 -128C62 -132 102 -108 112 -66C98 -78 76 -70 78 -50C80 -30 94 -16 98 -2Z" fill="#e8505f" stroke="#a92a39" stroke-width="2.500" stroke-linejoin="round"/><path d="M-70 -40C-30 -70 20 -80 70 -60" fill="none" stroke="#f58d97" stroke-width="5" stroke-linecap="round" opacity=".7"/><rect x="-102" y="-20" width="204" height="42" rx="21" fill="#fffaf1" stroke="#e3d6c4" stroke-width="2"/><circle cx="110" cy="-58" r="20" fill="#fffaf1" stroke="#e3d6c4" stroke-width="2"/></g>';
     if (eq.hat === 'crown') s += '<g transform="translate(272 62) rotate(-15)"><path d="M-74 22L-84 -50L-42 -18L0 -72L42 -18L84 -50L74 22Z" fill="#f5c25a" stroke="#c9922a" stroke-width="3" stroke-linejoin="round"/><rect x="-74" y="8" width="148" height="18" rx="4" fill="#e0a83a" stroke="#c9922a" stroke-width="2"/><circle cx="-84" cy="-50" r="8" fill="#e8505f"/><circle cx="0" cy="-72" r="8" fill="#8ec9ee"/><circle cx="84" cy="-50" r="8" fill="#e8505f"/><circle cx="-30" cy="17" r="4" fill="#fff" opacity=".8"/><circle cx="0" cy="17" r="4" fill="#fff" opacity=".8"/><circle cx="30" cy="17" r="4" fill="#fff" opacity=".8"/></g>';
@@ -914,8 +917,8 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
     { id: 'crown', cat: 'hat', name: 'כתר זהב', price: 60 },
     { id: 'glasses', cat: 'glasses', name: 'משקפי שמש', price: 40 },
     { id: 'earrings', cat: 'earrings', name: 'עגילי כוכב', price: 25 },
-    { id: 'sweater', cat: 'shirt', name: 'סוודר חג', price: 55 },
-    { id: 'startee', cat: 'shirt', name: 'חולצת כוכב', price: 35 }
+    { id: 'goldband', cat: 'bracelet', name: 'צמיד זהב', price: 35 },
+    { id: 'beads', cat: 'bracelet', name: 'צמיד חרוזים', price: 30 }
   ];
   function eqFor() { var e = {}; SHOP.forEach(function (it) { if (store.eq[it.cat] === it.id) e[it.cat] = it.id; }); return e; }
   function shopIcon(it) {
@@ -924,8 +927,8 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
       crown: '<path d="M10 48 L12 20 L24 32 L32 12 L40 32 L52 20 L54 48Z" fill="#f5c25a" stroke="#c9922a" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="20" r="3" fill="#e8505f"/><circle cx="32" cy="12" r="3" fill="#8ec9ee"/><circle cx="52" cy="20" r="3" fill="#e8505f"/>',
       glasses: '<rect x="6" y="24" width="24" height="18" rx="8" fill="#43355f"/><rect x="34" y="24" width="24" height="18" rx="8" fill="#43355f"/><path d="M30 30h4" stroke="#43355f" stroke-width="3"/><path d="M12 29h8M40 29h8" stroke="#fff" stroke-width="2" opacity=".5" stroke-linecap="round"/>',
       earrings: '<g fill="#f5c25a" stroke="#c9922a" stroke-width="1.500"><path d="M20 12l4 10 10 1-8 7 2.500 10-8.500-5.500-8.500 5.500 2.500-10-8-7 10-1z" transform="translate(4 4) scale(.9)"/><path d="M46 20l3 7 7 .800-5.500 5 1.800 7-6.300-4-6.300 4 1.800-7-5.500-5 7-.800z" transform="translate(0 6) scale(.8)"/></g>',
-      sweater: '<path d="M14 14 L24 10 Q32 18 40 10 L50 14 L60 28 L50 34 L46 28 L46 56 L18 56 L18 28 L14 34 L4 28 Z" fill="#f59cb0"/><path d="M18 46 H46" stroke="#fff" stroke-width="5"/><circle cx="26" cy="36" r="2" fill="#fff"/><circle cx="38" cy="36" r="2" fill="#fff"/>',
-      startee: '<path d="M14 14 L24 10 Q32 18 40 10 L50 14 L60 28 L50 34 L46 28 L46 56 L18 56 L18 28 L14 34 L4 28 Z" fill="#ffe08a"/><path d="M32 30l3 6.500 7 .8-5.200 4.600 1.400 7L32 45.200 25.800 49l1.400-7-5.200-4.600 7-.8z" fill="#f5b53a"/>'
+      goldband: '<ellipse cx="32" cy="36" rx="22" ry="11" fill="none" stroke="#c9922a" stroke-width="9"/><ellipse cx="32" cy="36" rx="22" ry="11" fill="none" stroke="#f5c25a" stroke-width="6"/><path d="M14 31q8-8 18-8" stroke="#fff3bf" stroke-width="2" fill="none" stroke-linecap="round"/>',
+      beads: '<g stroke="rgba(0,0,0,.12)"><circle cx="10" cy="34" r="6" fill="#f4a3b8"/><circle cx="15" cy="43" r="6" fill="#a9e3cd"/><circle cx="25" cy="48" r="6" fill="#ffd98a"/><circle cx="38" cy="48" r="6" fill="#c9b6f2"/><circle cx="49" cy="43" r="6" fill="#8ec9ee"/><circle cx="54" cy="34" r="6" fill="#f4a3b8"/><circle cx="51" cy="25" r="6" fill="#a9e3cd"/><circle cx="13" cy="25" r="6" fill="#ffd98a"/></g>'
     };
     return '<svg class="ico" viewBox="0 0 64 64" aria-hidden="true">' + m[it.id] + '</svg>';
   }
