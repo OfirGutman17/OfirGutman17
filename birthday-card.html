@@ -505,7 +505,7 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
         <circle cx="60" cy="38" r="7" fill="#e0b24a"/>
       </svg>
       <h2>כל הכבוד! יצרת משחק חדש!</h2>
-      <button class="btn red" id="cta" type="button">לחץ כאן לכניסה למשחק</button>
+      <button class="btn red" id="cta" type="button">לחצי כאן לכניסה למשחק</button>
     </div>
   </section>
 </main>
@@ -750,20 +750,30 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
       timer = setInterval(sched, 25); if (want) setMode(want);
     }
     // ----- music modes -----
-    var SN = [[67,3],[69,1],[67,2],[64,6],[67,3],[69,1],[67,2],[64,6],[74,6],[74,3],[71,3],[72,6],[72,3],[67,3],[69,3],[69,3],[72,2],[71,1],[69,3],[67,3],[69,1],[67,2],[64,6],[69,3],[69,3],[72,2],[71,1],[69,3],[67,3],[69,1],[67,2],[64,6],[74,6],[74,3],[77,3],[74,3],[71,3],[72,6],[72,3],[67,3],[64,3],[67,3],[65,3],[62,3],[60,6]], SNon = [], SNlen = 0;
-    SN.forEach(function (n) { SNon[SNlen] = n[0]; SNlen += n[1]; }); SNlen += 14;
+    var JB = [[64,2],[64,2],[64,4],[64,2],[64,2],[64,4],[64,2],[67,2],[60,3],[62,1],[64,8],
+      [65,2],[65,2],[65,2],[65,2],[65,2],[64,2],[64,2],[64,2],[64,2],[62,2],[62,2],[64,2],[62,4],[67,4],
+      [64,2],[64,2],[64,4],[64,2],[64,2],[64,4],[64,2],[67,2],[60,3],[62,1],[64,8],
+      [65,2],[65,2],[65,2],[65,2],[65,2],[64,2],[64,2],[64,2],[67,2],[67,2],[65,2],[62,2],[60,8]], JBon = [], JBlen = 0;
+    JB.forEach(function (n) { JBon[JBlen] = n[0]; JBlen += n[1]; }); JBlen += 8;
+    var CHB = [48, 48, 48, 48, 53, 48, 55, 48, 48, 48, 48, 48, 53, 48, 55, 48];
+    function celesta(m, t, v, dest) { var f = mtof(m); tone(f, t, .6, 'sine', v, dest, .004); tone(f * 2, t, .35, 'sine', v * .3, dest, .003); tone(f * 4, t, .15, 'sine', v * .09, dest, .002); }
+    var GCH = [43, 40, 48, 38];
+    var GLEAD = [[74,0,79,0,76,0,74,0,71,0,74,0,67,0,0,0], [76,0,79,0,76,0,71,0,74,0,71,0,67,0,0,0], [72,0,76,0,79,0,76,0,72,0,67,0,72,0,0,0], [74,0,78,0,81,0,78,0,74,0,69,0,71,0,74,0]];
     var LOB = [[48, [0, 4, 7, 11]], [45, [0, 3, 7, 10]], [41, [0, 4, 7, 11]], [43, [0, 4, 7, 10]]];
     var GAM = [[48, [0, 4, 7, 12]], [43, [0, 4, 7, 11]], [45, [0, 3, 7, 12]], [41, [0, 4, 7, 12]]];
     var PENT = [72, 74, 76, 79, 81, 84, 86];
     function makeMode(name) {
       var m = { name: name, step: 0, nextT: 0, g: ctx.createGain() }; m.g.gain.value = 0.0001; m.g.connect(musicBus);
       if (name === 'bells') {
-        m.dur = function () { return .5; };
+        m.dur = function () { return .27; };
         m.play = function (st, t) {
-          var q = st % SNlen, n = SNon[q];
-          if (n) { bell(n + 12, t, .2, m.g, 2.2); if (q % 6 === 0) bell(n - 12, t, .08, m.g, 2.6); }
-          if (q % 3 === 0 && Math.random() < .55) noise(t, .06, .02, 'bandpass', 7000 + Math.random() * 1500, 3, m.g);
-          if (q % 12 === 6 && Math.random() < .5) bell(PENT[(Math.random() * 7) | 0] + 12, t + .25, .05, m.g, 1.2);
+          var q = st % JBlen, bar = (q / 8) | 0, k = q % 8, on = q < JBlen - 8, root = CHB[bar % 16];
+          if (on) {
+            if (k === 0 || k === 4) tone(mtof(root), t, .3, 'triangle', .17, m.g, .008);
+            if (k === 2 || k === 6) [12, 16, 19].forEach(function (iv) { pluck(root + iv + (root === 53 && iv === 19 ? -12 : 0), t, .045, m.g); });
+            if (JBon[q]) celesta(JBon[q] + 12, t, .15, m.g);
+          }
+          noise(t, .05, k % 2 === 0 ? .03 : .017, 'bandpass', 7200 + (k % 4) * 300, 3, m.g);
         };
       } else if (name === 'lobby') {
         m.dur = function () { return .15; };
@@ -775,14 +785,16 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
           if (k === 4 && bar % 2 === 1) pluck(root + 36 + tn[2], t, .05, m.g);
         };
       } else {
-        m.dur = function () { return 15 / (104 + 66 * prog); };
+        m.f = ctx.createBiquadFilter(); m.f.type = 'lowpass'; m.f.frequency.value = 3400; m.f.connect(m.g);
+        m.dur = function () { return 15 / (112 + 68 * prog); };
         m.play = function (st, t) {
-          var bar = ((st / 16) | 0) % 4, k = st % 16, ch = GAM[bar], root = ch[0], tn = ch[1], it = prog < .25 ? 0 : prog < .5 ? 1 : prog < .75 ? 2 : 3;
-          if (k % 2 === 0) tone(mtof(root), t, .2, 'triangle', .19, m.g, .005);
-          if (it === 0 ? k % 4 === 2 : (it === 1 ? k % 2 === 1 : true)) pluck(root + 24 + tn[(st * 3) % 4], t, .085, m.g);
-          if (it >= 2 && k % 4 === 0) slide(130, 48, t, .13, 'sine', .22, m.g);
-          if (it >= 2 && k % 2 === 1) noise(t, .03, .016, 'highpass', 8000, 1, m.g);
-          if (it >= 3 && k % 4 === 2 && Math.random() < .65) pluck(PENT[(Math.random() * 7) | 0] + 12, t, .07, m.g);
+          var bar = ((st / 16) | 0) % 4, k = st % 16, root = GCH[bar], it = prog < .25 ? 0 : prog < .5 ? 1 : prog < .75 ? 2 : 3, lead = GLEAD[bar][k];
+          if (k % 2 === 0) tone(mtof(root + (k % 4 === 2 ? 12 : 0)), t, .13, 'triangle', .22, m.g, .004);
+          if (lead && (it > 0 || k % 4 === 0)) { tone(mtof(lead), t, .14, 'square', .045, m.f, .003); if (it >= 3) tone(mtof(lead + 12), t, .1, 'square', .02, m.f, .003); }
+          if (it >= 1 && k % 4 === 3) tone(mtof(root + 24 + [0, 4, 7, 12][(st >> 2) % 4]), t, .08, 'square', .028, m.f, .002);
+          if (it >= 1 && k % 2 === 1) noise(t, .03, .016, 'highpass', 8000, 1, m.g);
+          if (it >= 2 && k % 4 === 0) slide(150, 50, t, .12, 'sine', .24, m.g);
+          if (it >= 2 && k % 8 === 4) noise(t, .07, .06, 'highpass', 2500, 1, m.g);
         };
       }
       return m;
@@ -812,10 +824,10 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
       good: function (t) { bell(79, t, .17, sfxBus, .8); bell(86, t + .09, .17, sfxBus, 1); },
       bad: function (t) { slide(240, 130, t, .28, 'sine', .22, sfxBus); },
       win: function (t) { [72, 76, 79, 84, 88, 91, 96].forEach(function (m, i) { bell(m, t + i * .1, .15, sfxBus, 1.8); }); [60, 64, 67, 72].forEach(function (m) { bell(m, t + .75, .1, sfxBus, 2.4); }); },
-      beep: function (t) { tone(660, t, .14, 'sine', .17, sfxBus, .005); },
-      go: function (t) { tone(990, t, .35, 'sine', .2, sfxBus, .005); tone(1485, t, .3, 'sine', .08, sfxBus, .005); },
-      catchGood: function (t) { pluck(88, t, .2, sfxBus); pluck(95, t + .06, .2, sfxBus); },
-      catchBad: function (t) { slide(200, 80, t, .22, 'sawtooth', .1, sfxBus); noise(t, .1, .16, 'lowpass', 700, 1, sfxBus); },
+      beep: function (t) { tone(660, t, .1, 'square', .05, sfxBus, .004); },
+      go: function (t) { tone(990, t, .12, 'square', .05, sfxBus, .004); tone(1485, t + .1, .3, 'square', .05, sfxBus, .004); },
+      catchGood: function (t) { tone(880, t, .09, 'square', .05, sfxBus, .002); tone(1320, t + .07, .16, 'square', .05, sfxBus, .002); bell(100, t + .07, .05, sfxBus, .5); },
+      catchBad: function (t) { slide(420, 110, t, .3, 'square', .06, sfxBus); noise(t + .02, .08, .08, 'lowpass', 600, 1, sfxBus); },
       over: function (t) { [79, 76, 72, 67].forEach(function (m, i) { bell(m, t + i * .16, .15, sfxBus, 1.4); }); },
       coin: function (t) { tone(1319, t, .09, 'square', .06, sfxBus, .002); tone(1760, t + .08, .35, 'square', .06, sfxBus, .002); bell(96, t + .08, .08, sfxBus, .8); }
     };
