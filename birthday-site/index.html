@@ -154,17 +154,30 @@ html.unlocked.nosnap { scroll-snap-type: none; }
 canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 60; }
 
 
-/* ================= PAGE 1b : the letter ================= */
-.letter { position: relative; scroll-snap-align: start; color: var(--ink); padding-top: 54px; padding-bottom: 64px; display: flex; justify-content: center;
-  background: radial-gradient(circle at 85% 10%, rgba(142,201,238,.25), rgba(142,201,238,0) 40%), radial-gradient(circle at 10% 60%, rgba(245,143,166,.18), rgba(245,143,166,0) 42%), linear-gradient(180deg, #fbf1e2, #fbeee3 60%, #fbf1e2); }
-.paper { width: min(100%, 34rem); background: rgba(255,255,255,.72); border-radius: 30px; padding: 34px 26px 30px; box-shadow: 0 8px 0 rgba(224,170,190,.35), 0 26px 44px rgba(150,80,110,.16); border: 2px solid rgba(255,255,255,.9); text-align: right; position: relative; }
-.paper::before { content: ""; position: absolute; top: -22px; left: 50%; width: 44px; height: 44px; margin-left: -22px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #f9d6e1); box-shadow: 0 3px 8px rgba(150,80,110,.25); }
-.letter h2 { font-family: var(--display); font-weight: 400; font-size: clamp(2rem, 8.5vw, 2.7rem); color: var(--ruby); margin: 0 0 .5em; line-height: 1.15; }
-.letter .lp { font-size: clamp(1.05rem, 4.4vw, 1.22rem); line-height: 1.95; margin: 0 0 1.05em; font-weight: 500; text-wrap: pretty; }
-.letter .lp b { font-weight: 800; background: linear-gradient(transparent 62%, rgba(245,143,166,.45) 62%); }
-.letter .hrt { display: inline-block; width: 1.05em; height: 1.05em; vertical-align: -.16em; margin-inline: .1em; }
+/* ================= greeting window ================= */
+.gmodal { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(16px, env(safe-area-inset-bottom, 0px)); background: rgba(22,30,96,.34); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); opacity: 0; visibility: hidden; transition: opacity .6s ease, visibility .6s; perspective: 1300px; }
+.gmodal.on { opacity: 1; visibility: visible; }
+.gwin { position: relative; width: min(100%, 520px); max-height: min(86dvh, 780px); display: flex; flex-direction: column; color: var(--ink);
+  background: radial-gradient(circle at 90% 0%, rgba(142,201,238,.22), rgba(142,201,238,0) 45%), radial-gradient(circle at 5% 100%, rgba(245,143,166,.2), rgba(245,143,166,0) 45%), linear-gradient(180deg, #fffaf1, #fdf0e6);
+  border-radius: 30px; border: 2px solid rgba(255,255,255,.95); box-shadow: 0 10px 0 rgba(224,170,190,.4), 0 36px 70px rgba(10,14,60,.45);
+  transform: translateY(70px) scale(.55) rotateX(22deg); transform-origin: 50% 100%; opacity: 0; transition: transform 1s cubic-bezier(.2,1.25,.3,1), opacity .5s ease; }
+.gmodal.on .gwin { transform: none; opacity: 1; }
+.gbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px 6px 16px; flex: none; }
+.gtitle { font-size: 13px; font-weight: 700; color: var(--gold-deep); letter-spacing: .04em; }
+.gclose { display: inline-flex; align-items: center; gap: 6px; font-family: var(--body); font-weight: 800; font-size: 14px; color: #fff; background: linear-gradient(180deg, #ee6677, #cf3c50); border: 0; border-radius: 99px; padding: 8px 16px 8px 14px; box-shadow: 0 4px 0 #94222f; cursor: pointer; }
+.gclose:focus { outline: none; }
+.gclose:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.gclose:active { transform: translateY(3px); box-shadow: 0 1px 0 #94222f; }
+.gclose svg { width: 16px; height: 16px; }
+.gscroll { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 8px 26px 30px; text-align: right; }
+.gwin h2 { font-family: var(--display); font-weight: 400; font-size: clamp(2rem, 8.5vw, 2.6rem); color: var(--ruby); margin: 0 0 .4em; line-height: 1.15; }
+.gwin .lp { font-size: clamp(1.02rem, 4.3vw, 1.18rem); line-height: 1.95; margin: 0 0 1.05em; font-weight: 500; text-wrap: pretty; }
+.gwin .lp b { font-weight: 800; background: linear-gradient(transparent 62%, rgba(245,143,166,.45) 62%); }
+.gwin .hrt { display: inline-block; width: 1.05em; height: 1.05em; vertical-align: -.16em; margin-inline: .1em; }
+.reopen { position: absolute; z-index: 5; top: max(16px, env(safe-area-inset-top, 0px)); left: 0; right: 0; margin: auto; width: max-content; font-family: var(--body); font-weight: 700; font-size: 14px; color: #fff; background: rgba(26,35,105,.66); border: 1.5px solid rgba(255,255,255,.55); border-radius: 99px; padding: 9px 18px; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .6s; }
+.reopen.on { opacity: calc(1 - var(--p, 0) * 2); pointer-events: auto; }
 .reveal.in { opacity: 1; transform: none; }
-.lsig { position: relative; display: block; width: max-content; margin: 1.4em auto 0; padding: 8px 18px; font-family: var(--display); font-size: clamp(1.7rem, 7.5vw, 2.2rem); opacity: 0; transform: scale(0); }
+.gwin .lsig { position: relative; display: block; width: max-content; margin: 1.4em auto 0; padding: 8px 18px; font-family: var(--display); font-size: clamp(1.7rem, 7.5vw, 2.2rem); opacity: 0; transform: scale(0); }
 .lsig b { font-weight: 400; background: linear-gradient(100deg, #b02a47, #e0526a 40%, #d9a93f 60%, #b02a47); -webkit-background-clip: text; background-clip: text; color: transparent; background-size: 200% 100%; animation: shimmer 3s linear infinite; }
 .lsig.show { animation: popin .9s cubic-bezier(.2,1.7,.4,1) forwards; }
 .lsig i { position: absolute; width: 14px; height: 14px; opacity: 0; background: radial-gradient(circle, #fff 0 16%, transparent 18%), conic-gradient(from 45deg, transparent 0 40deg, #f0b93f 40deg 50deg, transparent 50deg 130deg, #f0b93f 130deg 140deg, transparent 140deg 220deg, #f0b93f 220deg 230deg, transparent 230deg 310deg, #f0b93f 310deg 320deg, transparent 320deg); border-radius: 50%; }
@@ -449,24 +462,12 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
       </svg>
     </div>
 
+    <button class="reopen" id="reopen" type="button">קראי שוב את הברכה</button>
+
     <button class="scrollcue" id="scrollcue" type="button">גללי למטה
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg>
     </button>
     <svg class="drift" viewBox="0 0 400 54" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30 C40 8 80 8 120 24 C170 44 210 6 260 14 C310 22 350 40 400 18 V54 H0Z" fill="#fbf1e2"/></svg>
-  </section>
-
-  <!-- ===== PAGE 1b ===== -->
-  <section class="letter bleed" id="letter">
-    <div class="paper">
-      <h2 class="lp reveal">מיתרי שלי,</h2>
-      <p class="lp reveal">לפעמים ביום ההולדת שלך אני מתרגש אפילו יותר משלי. לראות אותך קמה בבוקר, שמחה, מחייכת, ומתרגשת, פשוט עושה אותי מאושר!</p>
-      <p class="lp reveal">אני שמח שיש לי אותך, ואני מודה על כל דקה שיש לנו ביחד! אני שמח לחגוג איתך ומחכה לטוס איתך ביחד ולחגוג לשנינו <svg class="hrt" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C1 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.7h2C14 6.1 15.6 5 17.6 5 21 5 23 8.4 21.6 11.7 19.5 16.4 12 21 12 21z" fill="#e0526a"/></svg></p>
-      <p class="lp reveal">אני רוצה לאחל לך שקודם כל <b>תמיד תמיד תמיד</b> תהיי מאושרת, שמחה, בריאה ומתוקה! תגשימי חלומות, תצברי חוויות ותצלמי המון תמונות.</p>
-      <p class="lp reveal">אני מאחל לשנינו, שנמשיך לחגוג את ימי ההולדת ביחד, באהבה, ובהפתעות ומתנות. שנמשיך לשמח אחת את השניה, להיות אחד בשביל השניה ושמיום הולדת ליום הולדת רק נחדש ונשמח ונאהב!</p>
-      <p class="lp reveal">אני שמח עלייך ועל שיש לי אותך לצידי</p>
-      <p class="lp reveal">אני מאחל לנו שנחגוג את יום ההולדת הזה בדיוק כמו שאת רוצה ומצפה! אני אוהב אותך, <b>מאוד מאוד מאוד</b></p>
-      <div class="lsig" id="lsig"><b>הצ׳יקיטי שלך</b></div>
-    </div>
   </section>
 
   <!-- ===== PAGE 2 ===== -->
@@ -574,6 +575,25 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
         <h3>טבלת שיאים</h3>
       </header>
       <ol class="board" id="board"></ol>
+    </div>
+  </div>
+</div>
+
+<div class="gmodal" id="gmodal" role="dialog" aria-modal="true" aria-hidden="true" aria-label="הברכה">
+  <div class="gwin">
+    <div class="gbar">
+      <span class="gtitle">ברכה בשבילך</span>
+      <button class="gclose" id="gclose" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>סגירה</button>
+    </div>
+    <div class="gscroll" id="gscroll">
+      <h2 class="lp reveal">מיתרי שלי,</h2>
+      <p class="lp reveal">לפעמים ביום ההולדת שלך אני מתרגש אפילו יותר משלי. לראות אותך קמה בבוקר, שמחה, מחייכת, ומתרגשת, פשוט עושה אותי מאושר!</p>
+      <p class="lp reveal">אני שמח שיש לי אותך, ואני מודה על כל דקה שיש לנו ביחד! אני שמח לחגוג איתך ומחכה לטוס איתך ביחד ולחגוג לשנינו <svg class="hrt" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C1 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.7h2C14 6.1 15.6 5 17.6 5 21 5 23 8.4 21.6 11.7 19.5 16.4 12 21 12 21z" fill="#e0526a"/></svg></p>
+      <p class="lp reveal">אני רוצה לאחל לך שקודם כל <b>תמיד תמיד תמיד</b> תהיי מאושרת, שמחה, בריאה ומתוקה! תגשימי חלומות, תצברי חוויות ותצלמי המון תמונות.</p>
+      <p class="lp reveal">אני מאחל לשנינו, שנמשיך לחגוג את ימי ההולדת ביחד, באהבה, ובהפתעות ומתנות. שנמשיך לשמח אחת את השניה, להיות אחד בשביל השניה ושמיום הולדת ליום הולדת רק נחדש ונשמח ונאהב!</p>
+      <p class="lp reveal">אני שמח עלייך ועל שיש לי אותך לצידי</p>
+      <p class="lp reveal">אני מאחל לנו שנחגוג את יום ההולדת הזה בדיוק כמו שאת רוצה ומצפה! אני אוהב אותך, <b>מאוד מאוד מאוד</b></p>
+      <div class="lsig" id="lsig"><b>הצ׳יקיטי שלך</b></div>
     </div>
   </div>
 </div>
@@ -730,14 +750,32 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
     var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { threshold: .18 });
     io.observe($('game'));
   } else $('game').classList.add('in');
+  // ---------- greeting window ----------
   (function () {
-    var sg = $('lsig'); [[-6, 8], [102, 12], [20, -12], [72, -14], [48, 38], [96, 40], [-2, 44]].forEach(function (q, i) { var e = document.createElement('i'); e.style.left = q[0] + '%'; e.style.top = q[1] + '%'; e.style.setProperty('--sd', (i * .25) + 's'); sg.appendChild(e); });
-    var items = [].slice.call(document.querySelectorAll('.letter .reveal')); items.forEach(function (el, i) { el.style.setProperty('--rd', '0s'); });
-    if (!('IntersectionObserver' in window)) { items.forEach(function (el) { el.classList.add('in'); }); sg.classList.add('show'); return; }
-    var lo = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); lo.unobserve(e.target); } }); }, { threshold: .35 });
-    items.forEach(function (el) { lo.observe(el); });
-    var so = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { sg.classList.add('show'); var r = sg.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 60, -Math.PI / 2, 2.4, 9); so.disconnect(); } }); }, { threshold: .9 });
-    so.observe(sg);
+    var gm = $('gmodal'), gs = $('gscroll'), sg = $('lsig'), ro = $('reopen'), watched = false, io2, so;
+    [[-6, 8], [102, 12], [20, -12], [72, -14], [48, 38], [96, 40], [-2, 44]].forEach(function (q, i) { var e = document.createElement('i'); e.style.left = q[0] + '%'; e.style.top = q[1] + '%'; e.style.setProperty('--sd', (i * .25) + 's'); sg.appendChild(e); });
+    var items = [].slice.call(gm.querySelectorAll('.reveal'));
+    function watch() {
+      if (watched) return; watched = true;
+      if (!('IntersectionObserver' in window)) { items.forEach(function (el) { el.classList.add('in'); }); sg.classList.add('show'); return; }
+      io2 = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io2.unobserve(e.target); } }); }, { root: gs, threshold: .3 });
+      items.forEach(function (el) { io2.observe(el); });
+      so = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { sg.classList.add('show'); var r = sg.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 60, -Math.PI / 2, 2.4, 9); so.disconnect(); } }); }, { root: gs, threshold: .9 });
+      so.observe(sg);
+    }
+    window.openGreeting = function () {
+      root.classList.remove('locked'); root.classList.add('applock'); gm.classList.add('on'); gm.setAttribute('aria-hidden', 'false');
+      setTimeout(function () { watch(); try { $('gclose').focus({ preventScroll: true }); } catch (e) {} }, 450);
+    };
+    function close() {
+      if (!gm.classList.contains('on')) return;
+      gm.classList.remove('on'); gm.setAttribute('aria-hidden', 'true'); root.classList.remove('applock'); root.classList.add('unlocked');
+      $('scrollcue').classList.add('on'); ro.classList.add('on');
+    }
+    $('gclose').addEventListener('click', close);
+    gm.addEventListener('click', function (e) { if (e.target === gm) close(); });
+    window.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    ro.addEventListener('click', window.openGreeting);
   })();
 
   // ---------- cover art ----------
@@ -927,9 +965,9 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
       burst(0, h, 90, -Math.PI / 3, .8, 17); burst(innerWidth, h, 90, -Math.PI * 2 / 3, .8, 17);
     }, 2300);
     setTimeout(function () { rain(2600); burst(innerWidth / 2, innerHeight * .2, 60, Math.PI / 2, Math.PI, 6); }, 3600);
-    setTimeout(function () { root.classList.remove('locked'); root.classList.add('unlocked'); $('scrollcue').classList.add('on'); }, 5000);
+    setTimeout(function () { window.openGreeting(); }, 5700);
   }
-  $('scrollcue').addEventListener('click', function () { smoothTo($('letter'), 1300); });
+  $('scrollcue').addEventListener('click', function () { smoothTo($('game'), 1300); });
 
   // ================= sorting game =================
   var ITEMS = [
