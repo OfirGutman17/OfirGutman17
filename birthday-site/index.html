@@ -156,6 +156,9 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
 
 .mutebtn { position: fixed; z-index: 58; top: max(10px, env(safe-area-inset-top, 0px)); left: max(10px, env(safe-area-inset-left, 0px)); width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.7); background: rgba(26,35,105,.62); color: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; }
 .mutebtn svg { width: 22px; height: 22px; }
+.soundhint { position: fixed; z-index: 57; top: max(17px, calc(env(safe-area-inset-top, 0px) + 7px)); left: calc(max(10px, env(safe-area-inset-left, 0px)) + 50px); font-size: 12.5px; font-weight: 700; color: #fff; background: rgba(26,35,105,.62); border-radius: 99px; padding: 6px 12px; pointer-events: none; animation: sh 2.4s ease-in-out infinite; transition: opacity .5s; }
+.soundhint.gone { opacity: 0; animation: none; }
+@keyframes sh { 0%,100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
 .mutebtn .sl { display: none; } .mutebtn.off .sl { display: inline; } .mutebtn.off .w1, .mutebtn.off .w2 { display: none; }
 .app .topbar .bank, .app .shophead .bank { margin-left: 52px; }
 #scrPlay .hud { left: 62px; }
@@ -606,6 +609,8 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
 
 <button class="mutebtn" id="mute" type="button" aria-label="הפעלה והשתקה של הצלילים"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.500v13L7.500 14.500H4z" fill="currentColor"/><path class="w1" d="M15.500 9.500a3.500 3.500 0 0 1 0 5"/><path class="w2" d="M18 7a7 7 0 0 1 0 10"/><path class="sl" d="M16 9l5 6M21 9l-5 6"/></svg></button>
 
+<div class="soundhint" id="soundhint">נגעי במסך כדי להפעיל סאונד</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <canvas id="confetti"></canvas>
 
@@ -773,15 +778,16 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
     function makeMode(name) {
       var m = { name: name, step: 0, nextT: 0, g: ctx.createGain() }; m.g.gain.value = 0.0001; m.g.connect(musicBus);
       if (name === 'bells') {
-        m.dur = function () { return .27; };
+        m.dur = function () { return .36; };
         m.play = function (st, t) {
           var q = st % JBlen, bar = (q / 8) | 0, k = q % 8, on = q < JBlen - 8, root = CHB[bar % 16];
           if (on) {
-            if (k === 0 || k === 4) tone(mtof(root), t, .3, 'triangle', .17, m.g, .008);
-            if (k === 2 || k === 6) [12, 16, 19].forEach(function (iv) { pluck(root + iv + (root === 53 && iv === 19 ? -12 : 0), t, .045, m.g); });
-            if (JBon[q]) celesta(JBon[q] + 12, t, .15, m.g);
+            if (k === 0) { [12, 16, 19].forEach(function (iv) { tone(mtof(root + iv - (root === 55 && iv === 19 ? 12 : 0)), t, 2.6, 'sine', .028, m.g, .4); }); tone(mtof(root), t, .5, 'sine', .13, m.g, .02); }
+            if (k === 4) tone(mtof(root + (root === 48 ? 7 : 0)), t, .4, 'sine', .08, m.g, .02);
+            if (JBon[q]) celesta(JBon[q] + 12, t, .115, m.g);
           }
-          noise(t, .05, k % 2 === 0 ? .03 : .017, 'bandpass', 7200 + (k % 4) * 300, 3, m.g);
+          if (k % 4 === 0) { noise(t, .06, .02, 'bandpass', 7400, 3, m.g); noise(t + .07, .05, .012, 'bandpass', 8000, 3, m.g); }
+          else if (k === 6) noise(t, .05, .01, 'bandpass', 7600, 3, m.g);
         };
       } else if (name === 'lobby') {
         m.dur = function () { return .15; };
@@ -822,10 +828,10 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
     // ----- sound effects -----
     var FX = {
       tap: function (t) { tone(880, t, .05, 'triangle', .07, sfxBus, .002); },
-      insert: function (t) { noise(t, .03, .2, 'bandpass', 3200, 2, sfxBus); tone(1300, t, .05, 'square', .03, sfxBus, .002); },
-      unlock: function (t) { noise(t, .05, .32, 'bandpass', 2200, 2, sfxBus); noise(t + .09, .06, .38, 'bandpass', 1400, 2, sfxBus); slide(190, 90, t + .09, .22, 'sine', .45, sfxBus); tone(2300, t + .1, .5, 'triangle', .07, sfxBus, .002); tone(3400, t + .1, .3, 'sine', .04, sfxBus, .002); },
-      chains: function (t) { for (var i = 0; i < 22; i++) { var tt = t + i * .055 + Math.random() * .04; noise(tt, .05, .13 * (1 - i / 30), 'bandpass', 3500 + Math.random() * 2500, 4, sfxBus); if (i % 3 === 0) tone(1800 + Math.random() * 1500, tt, .09, 'triangle', .03, sfxBus, .002); } },
-      pop: function (t) { slide(320, 70, t, .16, 'sine', .38, sfxBus); noise(t, .1, .22, 'lowpass', 1800, 1, sfxBus); },
+      insert: function (t) { noise(t, .03, .32, 'bandpass', 3200, 2, sfxBus); tone(1300, t, .05, 'square', .05, sfxBus, .002); },
+      unlock: function (t) { noise(t, .05, .5, 'bandpass', 2200, 2, sfxBus); noise(t + .09, .07, .6, 'bandpass', 1400, 2, sfxBus); slide(190, 85, t + .09, .26, 'sine', .7, sfxBus); tone(2300, t + .1, .6, 'triangle', .12, sfxBus, .002); tone(3400, t + .1, .4, 'sine', .07, sfxBus, .002); bell(91, t + .16, .12, sfxBus, 1.4); bell(96, t + .26, .1, sfxBus, 1.6); },
+      chains: function (t) { for (var i = 0; i < 22; i++) { var tt = t + i * .055 + Math.random() * .04; noise(tt, .05, .22 * (1 - i / 30), 'bandpass', 3500 + Math.random() * 2500, 4, sfxBus); if (i % 3 === 0) tone(1800 + Math.random() * 1500, tt, .09, 'triangle', .03, sfxBus, .002); } },
+      pop: function (t) { slide(320, 70, t, .18, 'sine', .55, sfxBus); noise(t, .1, .32, 'lowpass', 1800, 1, sfxBus); },
       whoosh: function (t) { noise(t, 1.5, .16, 'bandpass', 300, 1.2, sfxBus, 2600); },
       chime: function (t) { [72, 76, 79, 84, 88, 91].forEach(function (m, i) { bell(m, t + i * .13, .16, sfxBus, 2); }); },
       sparkle: function (t) { for (var i = 0; i < 7; i++) bell(84 + ((i * 5) % 13), t + i * .07, .07, sfxBus, .9); },
@@ -845,6 +851,7 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
       master.gain.cancelScheduledValues(ctx.currentTime); master.gain.setTargetAtTime(v ? 0 : .9, ctx.currentTime, .08);
       if (!v && ctx.state === 'suspended') ctx.resume();
     }
+    api.duck = function (level, ms) { if (!ctx) return; var n = ctx.currentTime; musicBus.gain.cancelScheduledValues(n); musicBus.gain.setTargetAtTime(level, n, .06); musicBus.gain.setTargetAtTime(.55, n + ms / 1000, .35); };
     api.init = init; api.mode = setMode; api.muted = function () { return muted; }; api.setMuted = setMuted;
     api.intensity = function (p) { prog = Math.max(0, Math.min(1, p)); };
     api.sfx = function (name, delay) { if (!ctx || muted || !FX[name]) return; try { FX[name](ctx.currentTime + (delay || 0) + .02); } catch (e) {} };
@@ -852,8 +859,11 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
     ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { window.addEventListener(ev, init, { passive: true }); });
     return api;
   })();
+  AU.mode('bells'); try { AU.init(); } catch (e) {}
   (function () {
     var mb = $('mute'); function paint() { mb.classList.toggle('off', AU.muted()); mb.setAttribute('aria-pressed', AU.muted() ? 'true' : 'false'); }
+    var sh = $('soundhint'); function hideHint() { sh.classList.add('gone'); }
+    if (AU.muted()) hideHint(); ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { window.addEventListener(ev, hideHint, { once: true, passive: true }); });
     paint(); mb.addEventListener('click', function () { AU.init(); AU.setMuted(!AU.muted()); paint(); });
     document.addEventListener('click', function (e) { var t = e.target.closest && e.target.closest('.btn, .roundbtn, .gclose, .reopen, .scrollcue, .hintbtn'); if (t) AU.sfx('tap'); });
   })();
@@ -1089,7 +1099,7 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
   function unlock() {
     unlocking = true; dragging = false; key.classList.remove('dragging', 'idle', 'back-home');
     var a = keyTip(), b = holeCenter(); tx += b.x - a.x; ty += b.y - a.y;
-    key.classList.add('snap'); setKey(tx, ty); AU.sfx('insert');
+    key.classList.add('snap'); setKey(tx, ty); AU.sfx('insert'); AU.duck(.18, 2700);
     setTimeout(function () { key.classList.remove('snap'); key.classList.add('turn'); setKey(tx, ty, ' rotate(90deg)'); }, 220);
     setTimeout(function () { lock.classList.remove('near'); lock.classList.add('unlocked'); AU.sfx('unlock'); }, 700);
     setTimeout(function () {
@@ -1104,7 +1114,7 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
     }, 950);
     setTimeout(function () { lock.classList.add('drop'); }, 1300);
     setTimeout(function () {
-      cover.classList.add('open'); wrap.classList.add('opened-spread'); fitOpen(); AU.sfx('whoosh'); AU.sfx('chime', .7);
+      cover.classList.add('open'); wrap.classList.add('opened-spread'); fitOpen(); AU.sfx('whoosh'); AU.sfx('chime', .7); AU.duck(.4, 1900);
       var h = innerHeight * .95;
       burst(0, h, 90, -Math.PI / 3, .8, 17); burst(innerWidth, h, 90, -Math.PI * 2 / 3, .8, 17);
     }, 2300);
