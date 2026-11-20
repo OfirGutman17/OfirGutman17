@@ -745,7 +745,8 @@ body { background: #050818; }
       env(g, t, .004, d, v); src.connect(f); f.connect(g); g.connect(dest); src.start(t, Math.random() * .6); src.stop(t + d + .05);
     }
     function init() {
-      if (ctx) { if (ctx.state === 'suspended' && !muted) ctx.resume(); return; }
+      try { if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback'; } catch (e) {}
+      if (ctx) { if (ctx.state !== 'running' && !muted) { try { var rp = ctx.resume(); if (rp && rp.catch) rp.catch(function () {}); } catch (e) {} kick(); } return; }
       var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
       ctx = new AC(); var comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4;
       master = ctx.createGain(); master.gain.value = muted ? 0 : .9; master.connect(comp); comp.connect(ctx.destination);
@@ -754,6 +755,14 @@ body { background: #050818; }
       musicBus.connect(master); musicBus.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(wet); wet.connect(master);
       noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 1.5, ctx.sampleRate); var ch = noiseBuf.getChannelData(0); for (var i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
       timer = setInterval(sched, 25); if (want) setMode(want);
+      try { var rp2 = ctx.resume(); if (rp2 && rp2.catch) rp2.catch(function () {}); } catch (e) {}
+      kick();
+    }
+    // iOS: a silent media element plus a one-sample buffer unlock Web Audio and ignore the ring/silent switch
+    var sil = null;
+    function kick() {
+      try { var b = ctx.createBuffer(1, 1, 22050), sc = ctx.createBufferSource(); sc.buffer = b; sc.connect(ctx.destination); sc.start(0); } catch (e) {}
+      try { if (!sil) { sil = new Audio('data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUAGAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA'); sil.loop = true; sil.volume = .01; } var pp = sil.play(); if (pp && pp.catch) pp.catch(function () {}); } catch (e) {}
     }
     // ----- music modes -----
     var SPC = [[48, [0, 4, 7, 11, 14]], [45, [0, 3, 7, 10, 14]], [41, [0, 4, 7, 11, 14]], [43, [0, 4, 7, 9, 14]]], ARP = [0, 2, 4, 2, 3, 1, 4, 2];
@@ -839,18 +848,22 @@ body { background: #050818; }
       if (!v && ctx.state === 'suspended') ctx.resume();
     }
     api.duck = function (level, ms) { if (!ctx) return; var n = ctx.currentTime; musicBus.gain.cancelScheduledValues(n); musicBus.gain.setTargetAtTime(level, n, .06); musicBus.gain.setTargetAtTime(.55, n + ms / 1000, .35); };
-    api.init = init; api.mode = setMode; api.muted = function () { return muted; }; api.setMuted = setMuted;
+    api.init = init; api.mode = setMode; api.muted = function () { return muted; }; api.state = function () { return ctx ? ctx.state : 'none'; }; api.setMuted = setMuted;
     api.intensity = function (p) { prog = Math.max(0, Math.min(1, p)); };
     api.sfx = function (name, delay) { if (!ctx || muted || !FX[name]) return; try { FX[name](ctx.currentTime + (delay || 0) + .02); } catch (e) {} };
     document.addEventListener('visibilitychange', function () { if (!ctx) return; if (document.hidden) ctx.suspend(); else if (!muted) ctx.resume(); });
-    ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { window.addEventListener(ev, init, { passive: true }); });
+    ['pointerdown', 'pointerup', 'keydown', 'touchstart', 'touchend', 'click'].forEach(function (ev) { window.addEventListener(ev, init, { passive: true }); });
     return api;
   })();
-  AU.mode('bells'); try { AU.init(); } catch (e) {}
+  AU.mode('bells');
   (function () {
     var mb = $('mute'); function paint() { mb.classList.toggle('off', AU.muted()); mb.setAttribute('aria-pressed', AU.muted() ? 'true' : 'false'); }
-    var sh = $('soundhint'); function hideHint() { sh.classList.add('gone'); }
-    if (AU.muted()) hideHint(); ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { window.addEventListener(ev, hideHint, { once: true, passive: true }); });
+    var sh = $('soundhint'), gestured = false;
+    ['pointerdown', 'keydown', 'touchstart', 'click'].forEach(function (ev) { window.addEventListener(ev, function () { gestured = true; }, { passive: true }); });
+    setInterval(function () {
+      if (AU.muted() || AU.state() === 'running') { sh.classList.add('gone'); return; }
+      sh.classList.remove('gone'); sh.textContent = gestured ? 'לחץ על הרמקול כדי להפעיל סאונד' : 'גע במסך כדי להפעיל סאונד';
+    }, 500);
     paint(); mb.addEventListener('click', function () { AU.init(); AU.setMuted(!AU.muted()); paint(); });
     document.addEventListener('click', function (e) { var t = e.target.closest && e.target.closest('.btn, .roundbtn, .gclose, .reopen, .scrollcue, .hintbtn'); if (t) AU.sfx('tap'); });
   })();
