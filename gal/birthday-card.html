@@ -408,6 +408,9 @@ body { background: #050818; }
 .mutebtn { background: rgba(10,15,60,.7); }
 .it.bad::before { inset: -8px; background: radial-gradient(circle at 35% 28%, #ff7b87, #e12a40 70%); border: 3px solid #fff; box-shadow: 0 0 20px rgba(255,50,80,.85), inset 0 -6px 12px rgba(120,0,20,.3); animation: halo 1s ease-in-out infinite; }
 .player { width: 128px; height: 164px; }
+.skipbtn { position: absolute; z-index: 5; bottom: max(12px, env(safe-area-inset-bottom, 0px)); right: max(10px, env(safe-area-inset-right, 0px)); font-family: var(--body); font-size: 11px; font-weight: 500; color: rgba(214,226,255,.5); background: none; border: 0; padding: 8px 10px; cursor: pointer; transition: opacity .6s, color .2s; }
+.skipbtn:hover, .skipbtn:focus-visible { color: rgba(240,246,255,.9); }
+.skipbtn.gone { opacity: 0; pointer-events: none; }
 </style>
 
 <main>
@@ -468,7 +471,7 @@ body { background: #050818; }
               <div class="sheen"></div>
             </div>
             <div class="face back">
-              <p class="greet">גל אחי,</p>
+              <p class="greet">אח שלי!</p>
               <div class="rule"></div>
               <p class="line">יש לי כמה מילים בשבילך</p>
               <svg class="heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C1 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.7h2C14 6.1 15.6 5 17.6 5 21 5 23 8.4 21.6 11.7 19.5 16.4 12 21 12 21z" fill="#e0526a"/></svg>
@@ -502,6 +505,8 @@ body { background: #050818; }
         <rect x="100" y="22" width="6" height="8" rx="1.5" fill="url(#gold)"/>
       </svg>
     </div>
+
+    <button class="skipbtn" id="skipbtn" type="button">עבור מיד למשחק</button>
 
     <button class="reopen" id="reopen" type="button">קרא שוב את הברכה</button>
 
@@ -616,10 +621,14 @@ body { background: #050818; }
       <button class="gclose" id="gclose" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>סגירה</button>
     </div>
     <div class="gscroll" id="gscroll">
-      <h2 class="lp reveal">גל אחי,</h2>
-      <p class="lp reveal">כאן תבוא הברכה.</p>
-      <p class="lp reveal" style="opacity:.6">(הברכה תתווסף כאן)</p>
-      <div class="lsig" id="lsig"><b>אחיך</b></div>
+      <h2 class="lp reveal">אח שלי!</h2>
+      <p class="lp reveal">המון המון מזל טוב ליום הולדתך! מאחל לך שתשמח היום ותחגוג, תהנה ותחייך.</p>
+      <p class="lp reveal">לא מאמין שאתה בן 21, עוד רגע משתחרר! ויוצא לטרוף את העולם!</p>
+      <p class="lp reveal">מאחל לך שתמשיך להיות בן אדם טוב כמו שאתה, מצחיק, חכם שנון וסתלבטן, תמשיך להנות מהחיים, לחלום בגדול ולהשיג את המטרות שאתה מציב לעצמך</p>
+      <p class="lp reveal">תמשיך לפרוח עם ליטלי ולשמוח ולכייף</p>
+      <p class="lp reveal"><b>אני אוהב אותך המון</b> ושולח לך ברכות חמות מחו״ל</p>
+      <p class="lp reveal">תהנה היום ונחגוג לך כולם ביחד גם כשנחזור <svg class="hrt" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C1 8.4 3 5 6.4 5c2 0 3.6 1.1 4.6 2.7h2C14 6.1 15.6 5 17.6 5 21 5 23 8.4 21.6 11.7 19.5 16.4 12 21 12 21z" fill="#ff6a8a"/></svg></p>
+      <div class="lsig" id="lsig"><b>אוהב<br>אחי</b></div>
     </div>
   </div>
 </div>
@@ -1072,7 +1081,7 @@ body { background: #050818; }
     wrap.style.transform = 'translateX(' + (-W / 2 * s) + 'px) scale(' + s + ')';
   }
   function unlock() {
-    unlocking = true; dragging = false; key.classList.remove('dragging', 'idle', 'back-home');
+    unlocking = true; dragging = false; key.classList.remove('dragging', 'idle', 'back-home'); $('skipbtn').classList.add('gone');
     var a = keyTip(), b = holeCenter(); tx += b.x - a.x; ty += b.y - a.y;
     key.classList.add('snap'); setKey(tx, ty); AU.sfx('insert'); AU.duck(.18, 2700);
     setTimeout(function () { key.classList.remove('snap'); key.classList.add('turn'); setKey(tx, ty, ' rotate(90deg)'); }, 220);
@@ -1235,8 +1244,9 @@ body { background: #050818; }
   function renderHome() { $('bankHome').textContent = store.bank; $('avHome').innerHTML = avatar(eqFor()); }
 
   function openApp() { AU.appOpen = true; AU.mode('lobby'); root.classList.add('applock'); app.classList.add('on'); app.setAttribute('aria-hidden', 'false'); show('home'); renderHome(); }
-  function closeApp() { AU.appOpen = false; AU.mode('lobby'); app.classList.remove('on'); app.setAttribute('aria-hidden', 'true'); root.classList.remove('applock'); }
+  function closeApp() { AU.appOpen = false; AU.mode('lobby'); app.classList.remove('on'); app.setAttribute('aria-hidden', 'true'); root.classList.remove('applock'); if (!cover.classList.contains('open') && !unlocking) { root.classList.add('locked'); AU.mode('bells'); } }
   $('cta').addEventListener('click', openApp);
+  $('skipbtn').addEventListener('click', function () { root.classList.remove('locked'); openApp(); });
   $('homeExit').addEventListener('click', closeApp);
   $('btnPlay').addEventListener('click', startGame);
   $('btnShop').addEventListener('click', function () { renderShop(); show('shop'); });
